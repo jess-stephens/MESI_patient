@@ -1,0 +1,70 @@
+---
+title: "MESI_Stante_IIT_VL"
+author: "Jessica Stephens"
+date: "6/14/2022"
+output: html_document
+---
+here()
+df<-read_csv("Data/Sante network Liste des patients less than one year.csv")
+df <- read_excel("Data/Sante network Liste des patients less than one year.xlsx", 
+    col_types = c("text", "text", "text", 
+        "text", "numeric", "text", "text", 
+        "text", "text", "numeric", "numeric", 
+        "numeric", "text"))
+          as.Date(Regime_actuel)
+View(Sante_network_Liste_des_patients_less_than_one_year)
+
+
+df <- read_excel("Data/Sante network Liste des patients less than one year.xlsx", sheet="Liste des patients")%>% 
+  clean_names() %>%
+  mutate(art_regimen=regime_actuel,"prochain_rendez_vous"="date_next_appt", "date_derniere_charge_virale"= "date_last_vl",
+         "resultat_derniere_charge_virale"="result_last_vl", "nombre_de_jours_depuis_derniere_prescription"= "days_since_prescription", "duree_de_prescription"= "days_duration_perscription", "occurences_dinterruption_de_traitement"="number_interruptions", "distance_residence_from_facility"= "distance_residence_facility")
+         
+         
+
+
+```{r setup, include=FALSE}
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r import, include=FALSE}
+path<-here()
+setwd(here())
+
+df <- read_excel("Data/Sante network Liste des patients less than one year.xlsx", sheet="Liste des patients")%>% 
+  clean_names() %>%
+  rename(art_regimen=regime_actuel,date_next_appt=prochain_rendez_vous, date_last_vl=date_derniere_charge_virale,
+         result_last_vl=resultat_derniere_charge_virale,days_since_prescription=nombre_de_jours_depuis_derniere_prescription,days_duration_perscription=duree_de_prescription,number_interruptions=occurences_dinterruption_de_traitement,distance_residence_facility=distance_residence_from_facility) %>% 
+ as.Date(c(date_next_appt,date_last_vl),
+    origin = "30-12-1899")
+  glimpse()
+```
+
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+set_paths(folderpath_msd =
+  "C:/Users/jstephens/Documents/MSD")
