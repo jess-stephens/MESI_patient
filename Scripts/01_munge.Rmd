@@ -4,30 +4,6 @@ author: "Jessica Stephens"
 date: "6/14/2022"
 output: html_document
 ---
-here()
-df<-read_csv("Data/Sante network Liste des patients less than one year.csv")
-df <- read_excel("Data/Sante network Liste des patients less than one year.xlsx", 
-    col_types = c("text", "text", "text", 
-        "text", "numeric", "text", "text", 
-        "text", "text", "numeric", "numeric", 
-        "numeric", "text"))
-          as.Date(Regime_actuel)
-View(Sante_network_Liste_des_patients_less_than_one_year)
-
-
-df <- read_excel("Data/Sante network Liste des patients less than one year.xlsx", sheet="Liste des patients")%>% 
-  clean_names() %>%
-  mutate(art_regimen=regime_actuel,"prochain_rendez_vous"="date_next_appt", "date_derniere_charge_virale"= "date_last_vl",
-         "resultat_derniere_charge_virale"="result_last_vl", "nombre_de_jours_depuis_derniere_prescription"= "days_since_prescription", "duree_de_prescription"= "days_duration_perscription", "occurences_dinterruption_de_traitement"="number_interruptions", "distance_residence_from_facility"= "distance_residence_facility")
-         
-         
-
-
-```{r setup, include=FALSE}
-
-
-```
-
 ## R Markdown
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
@@ -35,36 +11,139 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 
-```{r import, include=FALSE}
+
+## This is the code for VL/IIT data 
+Read in dataset
+```{r setup, include=FALSE}
 path<-here()
 setwd(here())
 
 df <- read_excel("Data/Sante network Liste des patients less than one year.xlsx", sheet="Liste des patients")%>% 
   clean_names() %>%
-  rename(art_regimen=regime_actuel,date_next_appt=prochain_rendez_vous, date_last_vl=date_derniere_charge_virale,
-         result_last_vl=resultat_derniere_charge_virale,days_since_prescription=nombre_de_jours_depuis_derniere_prescription,days_duration_perscription=duree_de_prescription,number_interruptions=occurences_dinterruption_de_traitement,distance_residence_facility=distance_residence_from_facility) %>% 
- as.Date(c(date_next_appt,date_last_vl),
-    origin = "30-12-1899")
-  glimpse()
+  rename(sex=sexe,
+    art_regimen=regime_actuel,date_next_appt=prochain_rendez_vous, date_last_vl=date_derniere_charge_virale,
+         result_last_vl=resultat_derniere_charge_virale, days_since_prescription=nombre_de_jours_depuis_derniere_prescription,
+      days_duration_prescription=duree_de_prescription, number_interruptions=occurences_dinterruption_de_traitement, distance_residence_facility=distance_residence_from_facility)
+
+         
+         
+
 ```
 
 
 
-```{r cars}
-summary(cars)
+
+```{r import, include=TRUE}
+
+glimpse(df)
+view(df)
 ```
 
-## Including Plots
+## Data cleaning / descriptive stats
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r import, include=TRUE}
+unique(df$number_interruptions)
+summary(df$number_interruptions)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r import, include=TRUE}
+unique(df$result_last_vl)
+```
+
+```{r import, include=TRUE}
+df<-df %>% 
+  mutate(days_interrupted=days_since_prescription - days_duration_prescription)
+```
+
+## Bivariate
+
+
+```{r import, include=TRUE}
+
+
+#does number of previous interruptions impact last viral load?
+#outcome variable=result_last_vl
+#predictive variable= number_interruptions - 1
+#exclude results_last_vl = NA and number_interruptions =0
+
+
+df %>%    subset(!is.na(result_last_vl)) %>%
+  ggplot(  )+
+  stat_boxplot(aes(x=number_interruptions, y=result_last_vl),
+                outlier.alpha = .2)+
+  si_style_nolines()+
+  theme(axis.title.x = element_blank(),
+   axis.title.y = element_blank())
+
+mean<-df %>% 
+   group_by(result_last_vl) %>% 
+  summarize(mean(number_interruptions))
 
 
 
-set_paths(folderpath_msd =
-  "C:/Users/jstephens/Documents/MSD")
+ #  ggplot(df)+
+ #  stat_boxplot(data=df, mapping=aes(x=number_interruptions, y=result_last_vl),
+ #                outlier.alpha = .2,   na.rm = TRUE)+
+ # # si_style_nolines()+
+ # # theme(axis.title.x = element_blank(),
+ # #          axis.title.y = element_blank())+ 
+ #  geom_text(data=mean, mapping=aes(label = mean))
+#   si_legend_color()+
+ # scale_color_si("genoas")
+  # theme(title="number of previous interruptions impact last viral load"  )
+
+#does the last viral load outcome have any impact on the number of days someone has been interrupted?
+#exclude results_last_vl = NA and days_interrupted =0
+
+```
+
+## number_interruptions
+```{r import, include=TRUE}
+
+#relationship of days_duration_prescription and number_interruptions? 
+ df %>%   
+   ggplot()+
+   geom_point(aes(x=days_duration_prescription, y=number_interruptions))
+ df %>%   
+   ggplot()+
+   geom_bar(aes(x=days_duration_prescription, y=number_interruptions),
+            stat = "summary", fun.x = "mean")
+ df %>%    subset(days_duration_prescription>=0) %>%
+   ggplot()+
+   geom_area(aes(x=days_duration_prescription, y=number_interruptions),
+            stat = "summary", fun.x = "mean")
+#relationship of art_regiman and number_interruptions? 
+
+#relationship of age and sex on number_interruptions? 
+
+
+```
+```{r import, include=TRUE}
+
+ df %>% subset(!is.na(sex)) %>% 
+   ggplot()+
+   geom_col(aes(y=number_interruptions, x=sex))
+ df %>% subset(!is.na(sex)) %>% 
+   ggplot()+
+   geom_point(aes(y=number_interruptions, x=age))
+  df %>%   
+   ggplot()+
+   geom_bar(aes(x=age, y=number_interruptions),
+            stat = "summary")
+
+```
+
+## Regression
+
+
+
+```{r import, include=TRUE}
+#multivariate
+#number_interruptions = days_duration_prescription, age, sex, art_regimen
+
+dur<-df %>% lm(formula=number_interruptions~days_duration_prescription)
+print(summary(dur))
+
+
+```
